@@ -3,7 +3,6 @@ package com.octa.security.management.auth;
 import java.io.IOException;
 
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -34,9 +33,9 @@ public class AuthendicationController {
 	}
 
 	@PostMapping("/authenticateuser")
-	public ResponseEntity<UserAuthResponse> authenticate(@RequestBody UserAuthRequest request) {
+	public ResponseEntity<UserAuthResponse> authendicateUser(@RequestBody UserAuthRequest request) {
 		Tenant t = tenantService.getbyLoginurl(urlUtil.getCurrentRequestUrl());
-		return authService.authenticate(t,request);
+		return authService.authendicateUser(t,request);
 	}
 
 	@PostMapping("/refreshtoken")
@@ -55,7 +54,5 @@ public class AuthendicationController {
 		Tenant t = tenantService.getbyLoginurl(urlUtil.getCurrentRequestUrl());
 		return authService.updatePassword(t,request);
 	}
-	
-	
 
 }

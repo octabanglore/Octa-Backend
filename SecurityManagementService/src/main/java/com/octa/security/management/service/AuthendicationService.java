@@ -3,7 +3,6 @@ package com.octa.security.management.service;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.List;
@@ -66,12 +65,11 @@ public class AuthendicationService {
 	}
 
 	@OctaTransaction
-	public ResponseEntity<UserAuthResponse> authenticate(Tenant t, UserAuthRequest request) {
+	public ResponseEntity<UserAuthResponse> authendicateUser(Tenant t, UserAuthRequest request) {
 		try {
-			authenticationManager
-			.authenticate(new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword()));
+			authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword()));
 			var user = userRepository.findByPrimaryEmailId(request.getEmail()).orElseThrow();
-			//revokeAllUserTokens(user);
+			revokeAllUserTokens(user);
 			var jwtToken = jwtService.generateToken(user);
 			var refreshToken = jwtService.generateRefreshToken(user);
 			saveUserToken(user, jwtToken);
@@ -92,11 +90,13 @@ public class AuthendicationService {
 		}
 	}
 
+	
 	private void saveUserToken(User user, String jwtToken) {
 		var token = JwtAuthTkn.builder().user(user).userToken(jwtToken).tokenType(JwtTokenType.BEARER).expired(false)
 				.revoked(false).build();
 		tokenRepository.save(token);
 	}
+	 
 
 	private void revokeAllUserTokens(User user) {
 		List<JwtAuthTkn> validUserTokens = tokenRepository.findAllValidTokenByUser(user.getId());
@@ -122,8 +122,8 @@ public class AuthendicationService {
 			var user = this.userRepository.findByPrimaryEmailId(userEmail).orElseThrow();
 			if (jwtService.isTokenValid(refreshToken, user)) {
 				var accessToken = jwtService.generateToken(user);
-				//revokeAllUserTokens(user);
-				//saveUserToken(user, accessToken);
+				revokeAllUserTokens(user);
+				saveUserToken(user, accessToken);
 				var authResponse = UserAuthResponse.builder().accessToken(accessToken).refreshToken(refreshToken)
 						.build();
 				new ObjectMapper().writeValue(response.getOutputStream(), authResponse);
@@ -152,7 +152,7 @@ public class AuthendicationService {
 	@OctaTransaction
 	public ResponseEntity<UserPassRequestResponse> updatePassword(Tenant t, UserResetPasswordRequest request) {
 		try {
-		String passwordToken = request.getUsertoken();
+		String passwordToken = request.getUserdetailtoken();
 		if(StringUtils.isEmpty(passwordToken)) {
 			return  ResponseEntity.status(HttpStatus.NOT_FOUND).body(UserPassRequestResponse.builder().errorMessage("Token not found from request").status(HttpStatus.NOT_FOUND).build());
 		}
@@ -167,11 +167,11 @@ public class AuthendicationService {
 			 return  ResponseEntity.status(HttpStatus.GONE).body(UserPassRequestResponse.builder().errorMessage("Link has expired").status(HttpStatus.GONE).build());
 		 }
 		 
-		 if(StringUtils.isEmpty(request.getPassword()) || StringUtils.isEmpty(request.getConfirmpassword())) {
+		 if(StringUtils.isEmpty(request.getPassword()) || StringUtils.isEmpty(request.getConfirmPassword())) {
 			 return  ResponseEntity.status(HttpStatus.BAD_REQUEST).body(UserPassRequestResponse.builder().errorMessage("Password and confirm password are required").status(HttpStatus.BAD_REQUEST).build());
 		 }
 		 
-		 if(!request.getPassword().equals(request.getConfirmpassword())) {
+		 if(!request.getPassword().equals(request.getConfirmPassword())) {
 			 return  ResponseEntity.status(HttpStatus.BAD_REQUEST).body(UserPassRequestResponse.builder().errorMessage("Passwords do not match").status(HttpStatus.BAD_REQUEST).build()); 
 		 }
 		 user.setPassword(passwordEncoder.encode(request.getPassword()));

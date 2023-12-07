@@ -9,20 +9,21 @@ import com.octa.security.management.entity.JwtAuthTkn;
 import com.octa.transaction.repo.BaseDAO;
 
 import jakarta.persistence.Query;
+import jakarta.persistence.TypedQuery;
 
 @Repository
 public class JwtTokenRepository extends BaseDAO<Long, JwtAuthTkn> {
 
 	public Optional<JwtAuthTkn> findByToken(String token) {
-		Query q = getEntityManager().createQuery("FROM JwtAuthTkn WHERE token = :token");
+		Query q = getEntityManager().createQuery("FROM JwtAuthTkn WHERE userToken =:token");
 		q.setParameter("token", token);
 		JwtAuthTkn result = (JwtAuthTkn) q.getSingleResult();
 		return Optional.ofNullable(result);
 	}
 
 	public List<JwtAuthTkn> findAllValidTokenByUser(Long id) {
-		Query q =  getEntityManager().createQuery("Select t FROM User t");
-		//q.setParameter("id", id);
+		TypedQuery<JwtAuthTkn> q = getEntityManager().createQuery("FROM JwtAuthTkn e WHERE e.user.id =:id", JwtAuthTkn.class);
+		q.setParameter("id", id);
 		List<JwtAuthTkn> list = q.getResultList();
 		return list;
 

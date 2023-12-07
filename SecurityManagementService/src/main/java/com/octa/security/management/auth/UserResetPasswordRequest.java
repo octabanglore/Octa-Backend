@@ -12,9 +12,9 @@ import lombok.NoArgsConstructor;
 public class UserResetPasswordRequest {
 	
 	private String username;
-	private String usertoken;
+	private String userdetailtoken;
 	private String password;
-	private String confirmpassword;
+	private String confirmPassword;
 	
 
 }
