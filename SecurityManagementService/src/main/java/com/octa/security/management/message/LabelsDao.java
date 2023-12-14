@@ -1,5 +1,6 @@
 package com.octa.security.management.message;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.stereotype.Repository;
@@ -11,9 +12,11 @@ import jakarta.persistence.TypedQuery;
 
 @Repository
 public class LabelsDao extends BaseDAO<Long, Labels> {
+	
 	public List<Labels> getLabels() {
-		TypedQuery<Labels> q = getEntityManager().createQuery("FROM Labels WHERE active=1 ORDER BY id", Labels.class);
+		/*TypedQuery<Labels> q = getEntityManager().createQuery("FROM Labels WHERE active=1 ORDER BY id", Labels.class);
 		List<Labels> vlcMsgList = q.getResultList();
-		return vlcMsgList;
+		return vlcMsgList;*/
+		return new ArrayList<Labels>();
 	}
 }
