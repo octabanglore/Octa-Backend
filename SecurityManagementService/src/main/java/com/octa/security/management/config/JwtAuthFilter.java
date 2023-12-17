@@ -34,6 +34,26 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 		if (request.getServletPath().contains("/api/v1/auth")|| request.getServletPath().contains("/api/v1/i18") ) {
 			filterChain.doFilter(request, response);
 			return;
+		}else if (request.getServletPath().contains("/api/v1/purchaseOrders/")) {
+			System.out.println("asas:"+request.getServletPath());
+			filterChain.doFilter(request, response);
+			return;
+		}else if (request.getServletPath().contains("/api/v1/modules/")) {
+			System.out.println("asas:"+request.getServletPath());
+			filterChain.doFilter(request, response);
+			return;
+		}else if (request.getServletPath().contains("/api/v1/bcmreports")) {
+			System.out.println("asas:"+request.getServletPath());
+			filterChain.doFilter(request, response);
+			return;
+		}else if (request.getServletPath().contains("/api/v1/reportData")) {
+			System.out.println("asas:"+request.getServletPath());
+			filterChain.doFilter(request, response);
+			return;
+		}else if (request.getServletPath().contains("/api/v1/uploadData")) {
+			System.out.println("asas:"+request.getServletPath());
+			filterChain.doFilter(request, response);
+			return;
 		}
 		final String authHeader = request.getHeader("Authorization");
 		final String jwt;

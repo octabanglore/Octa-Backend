@@ -26,7 +26,7 @@ public class SecurityConfiguration {
 	private final AuthenticationProvider authenticationProvider;
 	private final LogoutHandler logoutHandler;
 
-	private static final String[] WHITE_LIST_URL = { "/api/v1/authenticate/**","/api/v1/i18/**" };
+	private static final String[] WHITE_LIST_URL = { "/api/v1/authenticate/**","/api/v1/i18/**", "/api/v1/purchaseOrders/**", "/api/v1/modules/**","/api/v1/bcmreports/**","/api/v1/reportData/**","/api/v1/uploadData/**"};
 
 	
     @Bean

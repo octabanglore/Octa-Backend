@@ -1,7 +1,11 @@
 package com.octa.security.management.module.service;
 
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
+
+import javax.sql.DataSource;
 
 import org.hibernate.query.sql.internal.NativeQueryImpl;
 import org.hibernate.transform.AliasToEntityMapResultTransformer;
@@ -20,19 +24,23 @@ import jakarta.persistence.Query;
 public class NativeQueryExecutorService {
 	
 	private static final Logger LOG = LoggerFactory.getLogger(NativeQueryExecutorService.class);
+	
 	@Autowired
 	EntityManager octaEntityManager;
 	
 	@OctaTransaction
-	public void executeNativeQuery(Tenant t, String nativeQuery) {
+	public List<Map<String,Object>> executeNativeQuery(Tenant t, String nativeQuery) {
 		System.out.println("Native Query executeNativeQuery nativeQuery:"+nativeQuery);
 		
 	Query q = octaEntityManager.createNativeQuery(nativeQuery);
 	NativeQueryImpl nativeQuery2 = (NativeQueryImpl) q;
 	nativeQuery2.setTupleTransformer(AliasToEntityMapResultTransformer.INSTANCE);
-	List<Map<String,Object>> result2 = nativeQuery2.getResultList();
 	
-	
+	return nativeQuery2.getResultList();
 	}
+	
+	 public Connection getConnectionFromEntityManager() throws SQLException {
+	        return octaEntityManager.unwrap(Connection.class);
+	    }
 
 }
