@@ -9,6 +9,10 @@ import java.util.Map;
 
 import javax.xml.parsers.DocumentBuilderFactory;
 
+import org.apache.poi.hssf.usermodel.HSSFCell;
+import org.apache.poi.hssf.usermodel.HSSFRow;
+import org.apache.poi.hssf.usermodel.HSSFSheet;
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -183,6 +187,73 @@ public class BCMCustomReport {
 	      }  
 	    return null;
 	  }
+	  
+	  public static ByteArrayOutputStream exportExcelStream() {
+		  if (get() != null) {
+			  try {
+				  HSSFWorkbook workbook = new HSSFWorkbook();
+				  HSSFSheet sheet = workbook.createSheet("Sheet1");
+				  int rowNum = 0;
+				  int columnIndex = 0;
+				  HSSFRow rowhead = sheet.createRow(rowNum++);
+
+				  final List<List<Map>> mList = get();
+				  Object key = null;
+				  // final FileWriter writer = new FileWriter(filePath);
+				  final boolean flag = true;
+				  if (mList == null) {
+					  return null;
+				  }
+				  final List<Map> hElement = mList.get(0);
+				  if (hElement != null) {
+					  for (final Map map : hElement) {
+						  key = map.keySet().iterator().next();
+						  rowhead.createCell(columnIndex++).setCellValue(key + "");
+					  }
+				  }
+
+				  for (final List<Map> element : mList) {
+					  if (element == null) {
+						  continue;
+					  }
+					  HSSFRow row = sheet.createRow(rowNum++);
+					  columnIndex = 0;
+					  for (final Map map2 : element) {
+
+						  if (map2 == null) {
+							  continue;
+						  }
+
+						  key = map2.keySet().iterator().next();
+						  Object v = map2.get(key);
+						  HSSFCell cell = row.createCell(columnIndex++);
+						  setCellValue(cell, v);
+
+					  }
+				  }
+
+				  ByteArrayOutputStream bos = new ByteArrayOutputStream();
+				  workbook.write(bos);
+				  return bos;
+			  }catch (Exception e) {
+				  e.printStackTrace();
+			}
+		  }
+			return null;
+		}
+	  
+	  public static void setCellValue(HSSFCell cell,Object v) {
+		  if(v == null) {
+			  cell.setCellValue("");	
+		  } else if(v instanceof Integer) {
+			  cell.setCellValue((Integer)v);
+		  }else if(v instanceof Double) {
+			  cell.setCellValue((Double)v);
+		  }else {
+			  cell.setCellValue(v+"");
+		  }
+
+	  }	
 	  
 	  /*private static String serializeXml(Document xml) {
 	    StringWriter out = new StringWriter();

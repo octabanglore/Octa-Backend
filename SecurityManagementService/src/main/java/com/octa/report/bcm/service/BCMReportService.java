@@ -156,7 +156,7 @@ public class BCMReportService {
 				/*if(!Boolean.parseBoolean(Mailer.getPropValue(jasper_excel_simple_content))) {
                         return exportExcelStream();
           	        }*/
-				return exportToExcel(jasperPrint, bcmFileConfiguration);
+				return BCMCustomReport.exportExcelStream().toByteArray();
 			case HTML:
 				return exportToHtml(jasperPrint);
 			case CSV:

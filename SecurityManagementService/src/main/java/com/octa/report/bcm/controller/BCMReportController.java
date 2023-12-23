@@ -70,7 +70,7 @@ public class BCMReportController {
         byte[] excelBytes = null;
 		try {
 			excelBytes = bcmReportService.generateBcmReport(BCMReportType.XLS, "Prince Purchase Order", parametersMap);
-			return createResponse(excelBytes, "report.xls", MediaType.APPLICATION_OCTET_STREAM);
+			return createResponse(excelBytes, "report.xls", MediaType.valueOf("application/vnd.ms-excel"));
 		} catch (SQLException e) {
 			e.printStackTrace();
 		} catch (JRException e) {

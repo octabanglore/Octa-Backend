@@ -26,6 +26,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.octa.security.management.module.service.NativeQueryExecutorService;
+import com.octa.transaction.entity.Tenant;
 import com.octa.transaction.platform.OctaTransaction;
 
 @Service
@@ -178,8 +179,9 @@ public class DataUploadService {
         String values = String.join(", ", data.get(0).keySet().stream().map(key -> "?").toArray(String[]::new));
 
         String sql = String.format("INSERT INTO %s (%s) VALUES (%s)", tableName, columns, values);
-
-        try (Connection connection = nativeQueryExecutorService.getConnectionFromEntityManager();
+        Tenant t = new Tenant();
+        t.setId(1L);
+        try (Connection connection = nativeQueryExecutorService.getConnectionFromEntityManager(t);
              PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
 
             int batchSize = 100;
