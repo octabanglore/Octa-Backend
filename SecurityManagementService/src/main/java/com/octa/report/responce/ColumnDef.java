@@ -13,6 +13,8 @@ public class ColumnDef {
     
     private boolean headerCheckboxSelection = false;
     
+    private boolean headerCheckboxSelectionFilteredOnly = false;
+    
     private boolean checkboxSelection = false;
     
     private boolean rowDrag = false;

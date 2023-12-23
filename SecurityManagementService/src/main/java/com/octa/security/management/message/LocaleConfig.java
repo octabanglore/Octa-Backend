@@ -24,6 +24,8 @@ public class LocaleConfig extends WebMvcConfigurationSupport {
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/api/v1/authenticate/**") // Map your endpoints here
                 .allowedOrigins("http://localhost:3000"); // Replace with your frontend application's origin
+        registry.addMapping("/api/v1/bcmreports/**") // Map your endpoints here
+        .allowedOrigins("http://localhost:3000"); // Replace with your frontend application's origin
               
     }
     

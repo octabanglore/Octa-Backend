@@ -1,24 +1,35 @@
 package com.octa.report.bcm.service;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.HashMap;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.hssf.usermodel.HSSFCell;
 import org.apache.poi.hssf.usermodel.HSSFRow;
 import org.apache.poi.hssf.usermodel.HSSFSheet;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.ResourceUtils;
 
 import com.octa.report.bcm.util.BCMCustomReport;
+import com.octa.report.bcm.util.ZipUtility;
+import com.octa.security.management.module.service.NativeQueryExecutorService;
+import com.octa.transaction.entity.Tenant;
+import com.octa.transaction.platform.OctaTransaction;
 
 import net.sf.jasperreports.engine.DefaultJasperReportsContext;
-import net.sf.jasperreports.engine.JRDataSource;
 import net.sf.jasperreports.engine.JRException;
 import net.sf.jasperreports.engine.JasperCompileManager;
 import net.sf.jasperreports.engine.JasperExportManager;
@@ -26,7 +37,6 @@ import net.sf.jasperreports.engine.JasperFillManager;
 import net.sf.jasperreports.engine.JasperPrint;
 import net.sf.jasperreports.engine.JasperReport;
 import net.sf.jasperreports.engine.JasperReportsContext;
-import net.sf.jasperreports.engine.data.JRBeanCollectionDataSource;
 import net.sf.jasperreports.engine.export.HtmlExporter;
 import net.sf.jasperreports.engine.export.JRCsvExporter;
 import net.sf.jasperreports.engine.export.JRXmlExporter;
@@ -42,68 +52,157 @@ import net.sf.jasperreports.governors.MaxPagesGovernor;
 @Service
 public class BCMReportService {
 	
-	public byte[] generateBcmReport(BCMReportType bcmReportType, String bcmReportFileName) {
-        try {
-        	
-        	if(StringUtils.isBlank(bcmReportFileName)) {
-        		System.out.println("BCM Download generateBcmReport bcmReportFileName is Null or Empty bcmReportFileName:"+bcmReportFileName);
-        		return null;
-        	}
-        	
-        	if(null==bcmReportType) {
-        		System.out.println("BCM Download generateBcmReport bcmReportType is Null or Empty bcmReportType:"+bcmReportType);
-        		bcmReportType = BCMReportType.PDF;
-        	}
-        	
-        	BCMFileConfiguration bcmFileConfiguration = BCMFileConfiguration.getDefaultConfiguration();
-        	
-        	Map<String, Object> parameters = new HashMap<>();
-        	
-        	
-            JasperReport jasperReport = getBCMJasperReport(bcmReportFileName);
-          
-            List<Person> dataSource = new ArrayList<Person>();
-            for (int i = 1; i < 100; i++) {
+	@Autowired
+	NativeQueryExecutorService nativeQueryExecutorService;
+	
+	@Autowired
+	ZipUtility zipUtility;
+	
+	
+	public byte[] generateBcmReport(BCMReportType bcmReportType, String bcmReportFileName, Map<String, Object> parametersMap) throws SQLException, JRException {
+
+		if(StringUtils.isBlank(bcmReportFileName)) {
+			System.out.println("BCM Download generateBcmReport bcmReportFileName is Null or Empty bcmReportFileName:"+bcmReportFileName);
+			return null;
+		}
+
+		if(null==bcmReportType) {
+			System.out.println("BCM Download generateBcmReport bcmReportType is Null or Empty bcmReportType:"+bcmReportType);
+			bcmReportType = BCMReportType.PDF;
+		}
+
+		BCMFileConfiguration bcmFileConfiguration = BCMFileConfiguration.getDefaultConfiguration();
+		
+		Date dateFld = new Date();
+		//Random randomGenerator = new Random();
+		Timestamp timeStamp = new Timestamp(dateFld.getTime());
+		SimpleDateFormat simpleDateFormat = new SimpleDateFormat("ddMMyyyyHHmm");
+		String fileOutputPath = "";
+		try {
+			Random randomGenerator = new Random();
+			String subPath = File.separator + "export" + File.separator+ simpleDateFormat.format(timeStamp).toString()+ randomGenerator.nextLong() + File.separator;
+			fileOutputPath =  ResourceUtils.getFile("classpath:")+File.separator+"reports"+File.separator+"bcmexport"+subPath;
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		}
+		
+		JasperReport jasperReport = getBCMJasperReport(bcmReportFileName);
+		
+		List<Integer> selectedValues =   (List) parametersMap.get("selectedValues");
+		System.out.println("selectedValues : "+selectedValues);
+		for (Integer selectedValue : selectedValues) {
+			parametersMap.put("processKey", selectedValue+"");
+			return generateBcmReport(bcmReportType, jasperReport, parametersMap, bcmFileConfiguration, fileOutputPath, bcmReportFileName);
+		}
+		return null;
+		//return zipUtility.downloadMultipleFiles(fileOutputPath);
+	}
+	
+	@OctaTransaction
+	public byte[] generateBcmReport(BCMReportType bcmReportType, JasperReport jasperReport, Map<String, Object> parametersMap, 
+			BCMFileConfiguration bcmFileConfiguration, String fileOutputPath, String jasperFile) throws SQLException {
+		Connection connection = null;
+
+		try {
+
+			/*List<Person> dataSource = new ArrayList<Person>();
+            for (int i = 1; i < 10; i++) {
             	dataSource.add(new Person("A"+i, i, "C"+i));
 			}
-            
-            JRDataSource jrDataSource = new JRBeanCollectionDataSource(dataSource);
-            
-            if(bcmReportType==BCMReportType.CSV || bcmReportType==BCMReportType.XML || bcmReportType==BCMReportType.XLS || bcmReportType==BCMReportType.XLSX ) {
-            	BCMCustomReport.unset();
-            	BCMCustomReport.loadData();
-		 	}
-            
-            if(StringUtils.isNotBlank(bcmFileConfiguration.getMaxPages())){
-		 		jasperReport.setProperty(MaxPagesGovernor.PROPERTY_MAX_PAGES_ENABLED, Boolean.TRUE.toString());
-	 			jasperReport.setProperty(MaxPagesGovernor.PROPERTY_MAX_PAGES, String.valueOf(bcmFileConfiguration.getMaxPages()));
-		 	}
 
-            JasperPrint jasperPrint = JasperFillManager.fillReport(jasperReport, parameters, jrDataSource);
-            
-            switch (bcmReportType) {
-                case PDF:
-                    return exportToPdf(jasperPrint, bcmFileConfiguration);
-                case XLSX, XLS:
-                	/*if(!Boolean.parseBoolean(Mailer.getPropValue(jasper_excel_simple_content))) {
+            JRDataSource jrDataSource = new JRBeanCollectionDataSource(dataSource);*/
+
+			if(bcmReportType==BCMReportType.CSV || bcmReportType==BCMReportType.XML || bcmReportType==BCMReportType.XLS || bcmReportType==BCMReportType.XLSX ) {
+				BCMCustomReport.unset();
+				BCMCustomReport.loadData();
+			}
+
+			if(null!=bcmFileConfiguration && StringUtils.isNotBlank(bcmFileConfiguration.getMaxPages())){
+				jasperReport.setProperty(MaxPagesGovernor.PROPERTY_MAX_PAGES_ENABLED, Boolean.TRUE.toString());
+				jasperReport.setProperty(MaxPagesGovernor.PROPERTY_MAX_PAGES, String.valueOf(bcmFileConfiguration.getMaxPages()));
+			}
+
+			Tenant t = new Tenant();
+			t.setId(1L);
+			connection = nativeQueryExecutorService.getConnectionFromEntityManager(t);
+
+			JasperPrint jasperPrint = JasperFillManager.fillReport(jasperReport, parametersMap, connection);
+			
+			
+			File checkHiddenPath = new File(fileOutputPath);
+			if (!checkHiddenPath.exists()) {
+				checkHiddenPath.mkdirs();
+			}
+			
+		    Random randomGenerator = new Random();
+		    //String dateStr = "" +SecureRandomUtil.nextLong()+ (new Date().getTime());
+		    SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyyMMddHHmmSSS");
+		    String dateStr = "_" +simpleDateFormat.format(new Date())+"_"+(randomGenerator.nextLong()+"").substring(14);
+		    String fileName = jasperFile+" "+ dateStr + "."+bcmReportType.name().toLowerCase();
+		    fileName = fileName.replaceAll(" ", "_");
+		    String filePath = fileOutputPath + fileName;
+		    
+		    /*downloadFile(jasperPrint, fileName, filePath);
+		    
+		    System.out.println("filePath : "+filePath);
+		    if(null!=filePath) {
+		    	return null;
+		    }*/
+		    
+			switch (bcmReportType) {
+			case PDF:
+				return exportToPdf(jasperPrint, bcmFileConfiguration);
+			case XLSX, XLS:
+				/*if(!Boolean.parseBoolean(Mailer.getPropValue(jasper_excel_simple_content))) {
                         return exportExcelStream();
           	        }*/
-                    return exportToExcel(jasperPrint, bcmFileConfiguration);
-                case HTML:
-                    return exportToHtml(jasperPrint);
-                case CSV:
-                	return BCMCustomReport.exportCSVReportStream().toByteArray();
-                case XML:
-                	return BCMCustomReport.exportXMLReportStream().toByteArray();
-                default:
-                    throw new IllegalArgumentException("Unsupported report type: " + bcmReportType);
-            }
-        } catch (JRException e) {
-            e.printStackTrace();
-            throw new RuntimeException("Error generating report");
-        }
-    }
-
+				return exportToExcel(jasperPrint, bcmFileConfiguration);
+			case HTML:
+				return exportToHtml(jasperPrint);
+			case CSV:
+				return BCMCustomReport.exportCSVReportStream().toByteArray();
+			case XML:
+				return BCMCustomReport.exportXMLReportStream().toByteArray();
+			default:
+				throw new IllegalArgumentException("Unsupported report type: " + bcmReportType);
+			}
+		} catch (JRException e) {
+			e.printStackTrace();
+			throw new RuntimeException("Error generating report");
+		}finally {
+			if(null!=connection) {
+				connection.close();
+			}
+			BCMCustomReport.unset();
+		}
+	}
+	
+	
+	public static void downloadFile(JasperPrint jasperPrint, String fileType, String filePath) {
+		try {
+			if (jasperPrint != null) {
+				if (filePath.contains(".html")) {
+					JasperExportManager.exportReportToHtmlFile(jasperPrint, filePath);
+				} else if (filePath.contains(".xml")) {
+					BCMCustomReport.exportXMLReport(filePath);
+					BCMCustomReport.unset();
+				} else if (filePath.contains(".pdf")) {
+					JasperExportManager.exportReportToPdfFile(jasperPrint, filePath);
+				} else if (filePath.contains(".xls")) {
+					JRXlsxExporter exporter = new JRXlsxExporter();
+					// render(exporter, jasperPrint, writer, filePath,session);
+				} else if (filePath.contains(".xlsx")) {
+					//render(new JRXlsxExporter(), jasperPrint, writer, filePath,session);
+				} else if (filePath.contains(".csv")) {
+					BCMCustomReport.exportCSVReport(filePath);
+					BCMCustomReport.unset();
+				}
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
 	private JasperReport getBCMJasperReport(String bcmReportFileName) throws JRException {
 		
 		if(StringUtils.isBlank(bcmReportFileName)) {

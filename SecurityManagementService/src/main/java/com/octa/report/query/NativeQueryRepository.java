@@ -15,11 +15,17 @@ public class NativeQueryRepository {
 	@Autowired
 	NativeQueryExecutorService nativeQueryExecutorService;
 	
-	
     public List<Map<String, Object>> executeNativeQuery(String nativeQuery) {
     	System.out.println("Native Query executeNativeQuery nativeQuery:"+nativeQuery);
     	Tenant t = new Tenant();
 		t.setId(1L);
     	return nativeQueryExecutorService.executeNativeQuery(t, nativeQuery);
+    }
+    
+    public List<Map<String, String>> executeFilterNativeQuery(String nativeQuery) {
+    	System.out.println("Native Query executeFilterNativeQuery nativeQuery:"+nativeQuery);
+    	Tenant t = new Tenant();
+		t.setId(1L);
+    	return nativeQueryExecutorService.executeFilterNativeQuery(t, nativeQuery);
     }
 }

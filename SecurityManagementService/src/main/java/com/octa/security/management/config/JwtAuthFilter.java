@@ -50,6 +50,10 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 			System.out.println("asas:"+request.getServletPath());
 			filterChain.doFilter(request, response);
 			return;
+		}else if (request.getServletPath().contains("/api/v1/reportfilters")) {
+			System.out.println("asas:"+request.getServletPath());
+			filterChain.doFilter(request, response);
+			return;
 		}else if (request.getServletPath().contains("/api/v1/uploadData")) {
 			System.out.println("asas:"+request.getServletPath());
 			filterChain.doFilter(request, response);

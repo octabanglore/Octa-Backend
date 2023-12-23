@@ -29,12 +29,12 @@ public class AdminMapUserRole implements Serializable{
     private AdminMapUserRoleKey id;
 
     @ManyToOne
-    @MapsId("id")
+    @MapsId("userId")
     @JoinColumn(name = "USER_ID")
     private User user;
 
     @ManyToOne
-    @MapsId("id")
+    @MapsId("roleId")
     @JoinColumn(name = "ROLE_ID")
     private Role role;
 

@@ -109,5 +109,17 @@ public class NativeQueryService {
 
 
 	}
+	
+	public List<Map<String, String>> executeFiltersNativeQuery(String query) {
+
+		List<Map<String, String>> resultFiltersDataList = new ArrayList<Map<String, String>>();
+
+		if(StringUtils.isNoneBlank(query)) {
+			resultFiltersDataList = nativeQueryRepository.executeFilterNativeQuery(query);
+		}else {
+			System.out.println("executeFiltersNativeQuery Query is Empty or Null");
+		}
+		return resultFiltersDataList;
+	}
 
 }
