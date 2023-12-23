@@ -5,7 +5,9 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import org.apache.commons.lang3.StringUtils;
@@ -67,10 +69,12 @@ public class AuthendicationService {
 	@OctaTransaction
 	public ResponseEntity<UserAuthResponse> authendicateUser(Tenant t, UserAuthRequest request) {
 		try {
+			Map<String, Object> claim = new HashMap<>();
+			claim.put("tenant", t.getId());
 			authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword()));
 			var user = userRepository.findByPrimaryEmailId(request.getEmail()).orElseThrow();
 			revokeAllUserTokens(user);
-			var jwtToken = jwtService.generateToken(user);
+			var jwtToken = jwtService.generateToken(claim,user);
 			var refreshToken = jwtService.generateRefreshToken(user);
 			saveUserToken(user, jwtToken);
 			return ResponseEntity.status(HttpStatus.OK)

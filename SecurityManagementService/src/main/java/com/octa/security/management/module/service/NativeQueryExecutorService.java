@@ -5,8 +5,10 @@ import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
 
-import javax.sql.DataSource;
-
+import org.hibernate.Session;
+import org.hibernate.engine.jdbc.connections.spi.JdbcConnectionAccess;
+import org.hibernate.engine.spi.SessionFactoryImplementor;
+import org.hibernate.engine.spi.SessionImplementor;
 import org.hibernate.query.sql.internal.NativeQueryImpl;
 import org.hibernate.transform.AliasToEntityMapResultTransformer;
 import org.slf4j.Logger;
@@ -39,8 +41,20 @@ public class NativeQueryExecutorService {
 	return nativeQuery2.getResultList();
 	}
 	
-	 public Connection getConnectionFromEntityManager() throws SQLException {
-	        return octaEntityManager.unwrap(Connection.class);
-	    }
+	@OctaTransaction
+	public Connection getConnectionFromEntityManager(Tenant t) throws SQLException {
+		Session session = (Session) octaEntityManager.getDelegate();
+		SessionFactoryImplementor sfi = (SessionFactoryImplementor) session.getSessionFactory();
+		JdbcConnectionAccess connectionAccess = ((SessionImplementor)sfi.getCurrentSession()).getJdbcConnectionAccess();
+		Connection conn = connectionAccess.obtainConnection();
+		/*
+		Map<String, Object> properties = octaEntityManager.getEntityManagerFactory().getProperties();
+		AtomikosDataSourceBean dataSource = (AtomikosDataSourceBean) properties.get("javax.persistence.jtaDataSource");
+		dataSource.getConnection();
+		*/
+		
+		return conn;
+	}
+	
 
 }

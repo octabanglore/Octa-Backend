@@ -8,10 +8,6 @@ import java.util.List;
 import org.hibernate.Session;
 import org.hibernate.stat.Statistics;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.cache.Cache;
-import org.springframework.cache.Cache.ValueWrapper;
-import org.springframework.cache.CacheManager;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;

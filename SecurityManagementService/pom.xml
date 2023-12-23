@@ -35,7 +35,7 @@
 			<version>1.1.1.RELEASE</version>
 		</dependency>
 		<dependency>
-			<groupId>com.octa.transaction.service</groupId>
+			<groupId>com.octa.transaction</groupId>
 			<artifactId>OctaTransactionService</artifactId>
 			<version>0.0.1-SNAPSHOT</version>
 		</dependency>

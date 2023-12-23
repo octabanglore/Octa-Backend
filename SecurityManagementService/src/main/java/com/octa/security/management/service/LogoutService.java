@@ -15,7 +15,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class LogoutService implements LogoutHandler {
 
-	private final JwtTokenRepository tokenRepository;
+	private final JwtTokenService tokenService;
 
 	@Override
 	public void logout(HttpServletRequest request, HttpServletResponse response, Authentication authentication) {
@@ -25,12 +25,7 @@ public class LogoutService implements LogoutHandler {
 			return;
 		}
 		jwt = authHeader.substring(7);
-		var userToken = tokenRepository.findByToken(jwt).orElse(null);
-		if (userToken != null) {
-			userToken.setExpired(true);
-			userToken.setRevoked(true);
-			tokenRepository.update(userToken);
-			SecurityContextHolder.clearContext();
-		}
+		SecurityContextHolder.clearContext();
+		tokenService.expireToken(jwt);
 	}
 }

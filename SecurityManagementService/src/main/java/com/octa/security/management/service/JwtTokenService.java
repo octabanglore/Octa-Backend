@@ -9,17 +9,30 @@ import java.util.function.Function;
 import javax.crypto.SecretKey;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
+
+import com.octa.security.management.repo.JwtTokenRepository;
+import com.octa.security.management.util.URLExtractorUtil;
+import com.octa.transaction.entity.Tenant;
+import com.octa.transaction.platform.OctaTransaction;
+import com.octa.transaction.platform.TenantAwareRequestContext;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import lombok.RequiredArgsConstructor;
 
 @Service
+@RequiredArgsConstructor
 public class JwtTokenService {
-
+	
+	private final JwtTokenRepository tokenRepository;
+	private final URLExtractorUtil urlUtil;
+	private final TenantService tenantService;
+	
 	@Value("${application.security.jwt.secret-key}")
 	private String secretKey;
 	@Value("${application.security.jwt.token.expiration}")
@@ -75,6 +88,19 @@ public class JwtTokenService {
 	private Key getSignInKey() {
 		byte[] keyBytes = Decoders.BASE64.decode(secretKey);
 		return Keys.hmacShaKeyFor(keyBytes);
+	}
+	
+	@OctaTransaction
+	public void expireToken(String token) {
+		Claims claim = extractAllClaims(token);
+		Long tenantId = Long.parseLong(claim.get("tenant").toString());
+		TenantAwareRequestContext.setTenantScope(tenantId);
+		var userToken = tokenRepository.findByToken(token).orElse(null);
+		if (userToken != null) {
+			userToken.setExpired(true);
+			userToken.setRevoked(true);
+			tokenRepository.update(userToken);
+		}
 	}
 
 }

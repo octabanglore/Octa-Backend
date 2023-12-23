@@ -6,7 +6,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.support.ReloadableResourceBundleMessageSource;
 import org.springframework.web.servlet.LocaleResolver;
-import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurationSupport;
 import org.springframework.web.servlet.i18n.LocaleChangeInterceptor;
@@ -19,14 +18,6 @@ public class LocaleConfig extends WebMvcConfigurationSupport {
 
     @Autowired
     private DataBaseMessgeSource messageMessageSource;
-	
-    @Override
-    public void addCorsMappings(CorsRegistry registry) {
-        registry.addMapping("/api/v1/authenticate/**") // Map your endpoints here
-                .allowedOrigins("http://localhost:3000"); // Replace with your frontend application's origin
-              
-    }
-    
 	@Bean
 	@Override
 	public LocaleResolver localeResolver() {
@@ -58,13 +49,4 @@ public class LocaleConfig extends WebMvcConfigurationSupport {
         return messageSource;
     }
 
-	/*
-	 * @Bean
-	 * 
-	 * @Primary public MessageSource compositeMessageSource() {
-	 * CompositeMessageSource compositeMessageSource = new CompositeMessageSource();
-	 * compositeMessageSource.addMessageSource(labelMessageSource());
-	 * compositeMessageSource.addMessageSource(messageMessageSource()); return
-	 * compositeMessageSource; }
-	 */
 }

@@ -65,7 +65,7 @@ import jakarta.persistence.MappedSuperclass;
 public class DataTierConfiguration {
 	private static final Logger logger = LoggerFactory.getLogger(DataTierConfiguration.class);
 
-	private String[] packagestoScanEntityClass = new String[] {"com.octa.transaction.entity","com.octa.security.management.entity"};
+	private String[] packagestoScanEntityClass = new String[] {"com.octa.transaction.entity","com.octa.security.management.entity","com.octa.security.management.message.entity"};
 	private List<String> scannedEntityClasses = new ArrayList<>();
 
 	@Autowired
@@ -414,5 +414,7 @@ public class DataTierConfiguration {
 	Advice exceptionLoggingInterceptor() {
 		return new ExceptionLoggingInterceptor();
 	}
+	
+
 
 }

@@ -1,5 +1,6 @@
 package com.octa.modules.controller;
 
+import java.sql.SQLException;
 import java.util.Map;
 
 import org.apache.logging.log4j.LogManager;
@@ -13,6 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.octa.modules.bean.Module;
 import com.octa.modules.service.ModuleService;
+import com.octa.security.management.module.service.NativeQueryExecutorService;
 import com.octa.security.management.service.TenantService;
 import com.octa.security.management.util.URLExtractorUtil;
 import com.octa.transaction.entity.Tenant;
@@ -29,7 +31,9 @@ public class ModuleController {
 	
 	private final URLExtractorUtil urlUtil;
 	
-	private final TenantService tenantService; ;
+	private final TenantService tenantService;
+	
+	private final NativeQueryExecutorService executorService;
 
 	private static final Logger logger = LogManager.getLogger(ModuleController.class);
 	
@@ -51,7 +55,13 @@ public class ModuleController {
 		Map<String, String> topBarData = moduleService.getTopbarData();
 		logger.debug("modules : Get Top Bar Data");
 		return new ResponseEntity<>(topBarData, HttpStatus.OK);
-	}	
+	}
+	
+	@GetMapping(value = "/extrattest")
+	public void extrattest() throws SQLException {
+		logger.debug("modules : extrattest");
+		executorService.getConnectionFromEntityManager(new Tenant(1L));
+	}
 	
 
 }
