@@ -1,5 +1,7 @@
 package com.octa.security.management.module.service;
 
+import java.util.List;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -41,5 +43,19 @@ public class AdminListPageService {
 	public AdminModule getModuleById(Tenant t, Long id) {
 		return moduleRepository.get(id);
 	}
-
+	
+	@OctaTransaction
+	public List<AdminModule> getAllModules(Tenant t) {
+		return moduleRepository.findAll();
+	}
+	
+	@OctaTransaction
+	public List<AdminListpageGroup> getAllModuleGroups(Tenant t, Long moduleId) {
+		return listPageGroupRepository.findAllByModuleId(moduleId);
+	}
+	
+	@OctaTransaction
+	public List<AdminListpage> getAllListpageReportsByGroupId(Tenant t, Long listpageGroupId) {
+		return listPageRepository.findAllByGroupId(listpageGroupId);
+	}
 }

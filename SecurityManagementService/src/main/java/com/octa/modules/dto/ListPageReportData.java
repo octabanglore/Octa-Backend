@@ -1,14 +1,18 @@
 package com.octa.modules.dto;
 
-public class ReportDTO {
+import lombok.Data;
+
+@Data
+public class ListPageReportData {
 	
-	private String reportId;
+	private Long reportId;
     private String reportName;
+    private String reportIcon = "viewNewOrderIcon";
     
-	public String getReportId() {
+	public Long getReportId() {
 		return reportId;
 	}
-	public void setReportId(String reportId) {
+	public void setReportId(Long reportId) {
 		this.reportId = reportId;
 	}
 	public String getReportName() {
@@ -17,7 +21,5 @@ public class ReportDTO {
 	public void setReportName(String reportName) {
 		this.reportName = reportName;
 	}
-    
-    
 
 }

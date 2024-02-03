@@ -66,6 +66,7 @@ public class ListPageReportDataService {
 	private List<ColumnDef> prepareReportColumnDefination(List<ListColumn> listColumns) {
 		
 		List<ColumnDef> columnDefList = new ArrayList<ColumnDef>();
+		int count = 0;
 		if(null!=listColumns && listColumns.size()>0) {
 			for (ListColumn listColumn : listColumns) {
 				ColumnDef columnDef = new ColumnDef();
@@ -79,7 +80,12 @@ public class ListPageReportDataService {
 					columnDef.setHeaderCheckboxSelection(false);
 					columnDef.setCheckboxSelection(true);
 				}
+				if(count == 0) {
+					columnDef.setHeaderCheckboxSelection(true);
+					columnDef.setCheckboxSelection(true);
+				}
 				columnDefList.add(columnDef);
+				count++;
 			}
 		}
 		return columnDefList;
