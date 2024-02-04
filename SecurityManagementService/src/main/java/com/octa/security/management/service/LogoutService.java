@@ -5,7 +5,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.logout.LogoutHandler;
 import org.springframework.stereotype.Service;
 
-import com.octa.security.management.repo.JwtTokenRepository;
+import com.octa.security.management.entity.JwtAuthTkn;
+import com.octa.transaction.entity.Tenant;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -15,7 +16,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class LogoutService implements LogoutHandler {
 
-	private final JwtTokenRepository tokenRepository;
+	private final JwtTokenService jwtTokenService;
 
 	@Override
 	public void logout(HttpServletRequest request, HttpServletResponse response, Authentication authentication) {
@@ -25,11 +26,15 @@ public class LogoutService implements LogoutHandler {
 			return;
 		}
 		jwt = authHeader.substring(7);
-		var userToken = tokenRepository.findByToken(jwt).orElse(null);
+		Long tenantId = jwtTokenService.extractTenant(jwt);
+		Tenant tenant = new Tenant(tenantId);
+		
+		
+		JwtAuthTkn userToken = jwtTokenService.findByToken(tenant,jwt).orElse(null);
 		if (userToken != null) {
 			userToken.setExpired(true);
 			userToken.setRevoked(true);
-			tokenRepository.update(userToken);
+			jwtTokenService.updateToken(tenant,userToken);
 			SecurityContextHolder.clearContext();
 		}
 	}

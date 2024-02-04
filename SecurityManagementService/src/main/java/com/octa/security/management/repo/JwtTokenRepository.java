@@ -6,6 +6,8 @@ import java.util.Optional;
 import org.springframework.stereotype.Repository;
 
 import com.octa.security.management.entity.JwtAuthTkn;
+import com.octa.transaction.entity.Tenant;
+import com.octa.transaction.platform.OctaTransaction;
 import com.octa.transaction.repo.BaseDAO;
 
 import jakarta.persistence.Query;

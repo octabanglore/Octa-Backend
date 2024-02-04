@@ -5,7 +5,9 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import org.apache.commons.lang3.StringUtils;
@@ -67,10 +69,12 @@ public class AuthendicationService {
 	@OctaTransaction
 	public ResponseEntity<UserAuthResponse> authendicateUser(Tenant t, UserAuthRequest request) {
 		try {
+			Map<String, Object> claim = new HashMap<>();
+			claim.put("tenant", t.getId());
 			authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword()));
 			var user = userRepository.findByPrimaryEmailId(request.getEmail()).orElseThrow();
-			revokeAllUserTokens(user);
-			var jwtToken = jwtService.generateToken(user);
+			revokeAllUserTokens(t,user);
+			var jwtToken = jwtService.generateToken(claim,user);
 			var refreshToken = jwtService.generateRefreshToken(user);
 			saveUserToken(user, jwtToken);
 			return ResponseEntity.status(HttpStatus.OK)
@@ -98,7 +102,7 @@ public class AuthendicationService {
 	}
 	 
 
-	private void revokeAllUserTokens(User user) {
+	private void revokeAllUserTokens(Tenant t,User user) {
 		List<JwtAuthTkn> validUserTokens = tokenRepository.findAllValidTokenByUser(user.getId());
 		if (validUserTokens.isEmpty())
 			return;
@@ -122,8 +126,8 @@ public class AuthendicationService {
 			var user = this.userRepository.findByPrimaryEmailId(userEmail).orElseThrow();
 			if (jwtService.isTokenValid(refreshToken, user)) {
 				var accessToken = jwtService.generateToken(user);
-				revokeAllUserTokens(user);
-				saveUserToken(user, accessToken);
+			//	revokeAllUserTokens(user);
+			//	saveUserToken(user, accessToken);
 				var authResponse = UserAuthResponse.builder().accessToken(accessToken).refreshToken(refreshToken)
 						.build();
 				new ObjectMapper().writeValue(response.getOutputStream(), authResponse);

@@ -3,14 +3,22 @@ package com.octa.security.management.service;
 import java.security.Key;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Function;
 
 import javax.crypto.SecretKey;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
+
+import com.octa.security.management.entity.JwtAuthTkn;
+import com.octa.security.management.repo.JwtTokenRepository;
+import com.octa.transaction.entity.Tenant;
+import com.octa.transaction.platform.OctaTransaction;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
@@ -20,6 +28,9 @@ import io.jsonwebtoken.security.Keys;
 @Service
 public class JwtTokenService {
 
+	@Autowired
+	private JwtTokenRepository tokenRepository;
+	
 	@Value("${application.security.jwt.secret-key}")
 	private String secretKey;
 	@Value("${application.security.jwt.token.expiration}")
@@ -75,6 +86,26 @@ public class JwtTokenService {
 	private Key getSignInKey() {
 		byte[] keyBytes = Decoders.BASE64.decode(secretKey);
 		return Keys.hmacShaKeyFor(keyBytes);
+	}
+	
+	public Long extractTenant(String token) {
+		return extractClaim(token, claim-> claim.get("tenant", Long.class));
+	}
+	
+	@OctaTransaction
+	public List<JwtAuthTkn> findByToken(Tenant t, Long userId) {
+		List<JwtAuthTkn> tokens= tokenRepository.findAllValidTokenByUser(userId);
+		return tokens;
+		
+	}
+	@OctaTransaction
+	public Optional<JwtAuthTkn> findByToken(Tenant t, String token) {
+		return  tokenRepository.findByToken(token);
+		
+	}
+	@OctaTransaction 
+	public void updateToken(Tenant t, JwtAuthTkn token) {
+		tokenRepository.update(token);
 	}
 
 }

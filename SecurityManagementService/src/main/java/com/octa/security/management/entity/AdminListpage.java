@@ -50,7 +50,7 @@ public class AdminListpage {
     @Column(name = "created_datetime")
     private Date createdDatetime;
 
-    @Column(name = "modifiied_by")
+    @Column(name = "modified_by")
     private Integer modifiedBy;
 
     @Column(name = "modified_datetime")

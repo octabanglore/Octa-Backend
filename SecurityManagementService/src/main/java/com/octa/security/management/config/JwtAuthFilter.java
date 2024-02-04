@@ -6,13 +6,14 @@ import org.springframework.lang.NonNull;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import com.octa.security.management.repo.JwtTokenRepository;
 import com.octa.security.management.service.JwtTokenService;
+import com.octa.security.management.service.UserService;
+import com.octa.transaction.entity.Tenant;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -25,7 +26,7 @@ import lombok.RequiredArgsConstructor;
 public class JwtAuthFilter extends OncePerRequestFilter {
 
 	private final JwtTokenService jwtService;
-	private final UserDetailsService userDetailsService;
+	private final UserService userDetailsService;
 	private final JwtTokenRepository tokenRepository;
 
 	@Override
@@ -34,7 +35,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 		if (request.getServletPath().contains("/api/v1/auth")|| request.getServletPath().contains("/api/v1/i18") ) {
 			filterChain.doFilter(request, response);
 			return;
-		}else if (request.getServletPath().contains("/api/v1/purchaseOrders/")) {
+		}/*else if (request.getServletPath().contains("/api/v1/purchaseOrders/")) {
 			System.out.println("asas:"+request.getServletPath());
 			filterChain.doFilter(request, response);
 			return;
@@ -58,8 +59,8 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 			System.out.println("asas:"+request.getServletPath());
 			filterChain.doFilter(request, response);
 			return;
-		}
-		/*final String authHeader = request.getHeader("Authorization");
+		}*/
+		final String authHeader = request.getHeader("Authorization");
 		final String jwt;
 		final String userEmail;
 		if (authHeader == null || !authHeader.startsWith("Bearer ")) {
@@ -69,8 +70,10 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 		jwt = authHeader.substring(7);
 		userEmail = jwtService.extractUsername(jwt);
 		if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-			UserDetails userDetails = this.userDetailsService.loadUserByUsername(userEmail);
-			boolean isTokenValid = tokenRepository.findByToken(jwt).map(t -> !t.isExpired() && !t.isRevoked())
+			Long tenantId = jwtService.extractTenant(jwt);
+			Tenant tenant = new Tenant(tenantId);
+			UserDetails userDetails = this.userDetailsService.loadUserByUsername(tenant,userEmail);
+			boolean isTokenValid = jwtService.findByToken(tenant,jwt).map(t -> !t.isExpired() && !t.isRevoked())
 					.orElse(false);
 
 			if (jwtService.isTokenValid(jwt, userDetails) && isTokenValid) {
@@ -81,7 +84,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 			}
 		}
 		filterChain.doFilter(request, response);
-		*/
+		
 	}
 
 }

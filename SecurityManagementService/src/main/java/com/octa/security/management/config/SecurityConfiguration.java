@@ -32,7 +32,7 @@ public class SecurityConfiguration {
 	private final AuthenticationProvider authenticationProvider;
 	private final LogoutHandler logoutHandler;
 
-	private static final String[] WHITE_LIST_URL = { "/api/v1/authenticate/**","/api/v1/i18/**", "/api/v1/purchaseOrders/**", "/api/v1/modules/**","/api/v1/bcmreports/**","/api/v1/reportData/**","/api/v1/uploadData/**","/api/v1/auth/logout"};
+	private static final String[] WHITE_LIST_URL = { "/api/v1/authenticate/**","/api/v1/i18/**", "/api/v1/modules/**","/api/v1/bcmreports/**","/api/v1/reportData/**","/api/v1/uploadData/**","/api/v1/auth/logout"};
 
 	
     @Bean
@@ -65,7 +65,7 @@ public class SecurityConfiguration {
     
     CorsConfigurationSource corsConfigurationSource() {
     	CorsConfiguration configuration = new CorsConfiguration();
-    	configuration.setAllowedOrigins(Arrays.asList("http://localhost:3000"));
+    	configuration.setAllowedOrigins(Arrays.asList("http://localhost:3000","http://34.227.132.94:3000"));
     	configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE","OPTIONS"));
     	configuration.addAllowedHeader("*");
     	UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
